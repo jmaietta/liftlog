@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 import { Dumbbell } from 'lucide-react';
@@ -42,10 +42,10 @@ export default function Login() {
     setError('');
     setBusy(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      // Redirect to Google's sign-in page (avoids COOP popup issues)
+      await signInWithRedirect(auth, googleProvider);
     } catch (err) {
       setError(prettyError(err.message));
-    } finally {
       setBusy(false);
     }
   }
