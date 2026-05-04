@@ -36,3 +36,4 @@ export default function App() {
 
   return user ? <LiftLog user={user} /> : <Login configError={firebaseConfigError || authError} />;
 }
+
