@@ -63,6 +63,23 @@ firebase deploy --only hosting
 
 You'll get a URL like `https://liftlog-xxxxx.web.app`. That's your live app.
 
+### Deploying to Vercel instead
+
+Add the same Firebase values in **Vercel Project Settings -> Environment Variables**. The variable names must keep the `VITE_` prefix:
+
+```
+VITE_FIREBASE_API_KEY=AIza...
+VITE_FIREBASE_AUTH_DOMAIN=liftlog-xxxxx.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=liftlog-xxxxx
+VITE_FIREBASE_STORAGE_BUCKET=liftlog-xxxxx.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+After adding or changing them, redeploy the Vercel project. Vite embeds these variables during build, so an existing deployment will not pick up new values automatically.
+
+For Google sign-in, also add your Vercel domains in Firebase Console under **Authentication -> Settings -> Authorized domains**. Add the production domain, for example `your-app.vercel.app`, and any custom domain you use.
+
 ### 5. Push to GitHub
 
 ```bash
