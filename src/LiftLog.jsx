@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Plus, X, Dumbbell, History, TrendingUp, Check, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import {
-  collection, query, where, orderBy, onSnapshot,
+  collection, query, where, onSnapshot,
   addDoc, deleteDoc, doc, writeBatch, Timestamp,
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
@@ -114,8 +114,7 @@ export default function LiftLog({ user }) {
   useEffect(() => {
     const q = query(
       collection(db, 'setLogs'),
-      where('userId', '==', user.uid),
-      orderBy('loggedAt', 'desc')
+      where('userId', '==', user.uid)
     );
     const unsub = onSnapshot(q, (snap) => {
       const sets = snap.docs.map(d => {
@@ -129,7 +128,7 @@ export default function LiftLog({ user }) {
           weight: data.weight,
           reps: data.reps,
         };
-      });
+      }).sort((a, b) => new Date(b.loggedAt) - new Date(a.loggedAt));
       setSetLogs(sets);
       setLoaded(true);
     }, (err) => {
