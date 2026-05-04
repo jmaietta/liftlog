@@ -3,7 +3,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 import { Dumbbell } from 'lucide-react';
@@ -57,16 +56,7 @@ export default function Login({ configError = '' }) {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/popup-closed-by-user') {
-        try {
-          await signInWithRedirect(auth, googleProvider);
-          return;
-        } catch (redirectErr) {
-          setError(prettyError(redirectErr));
-        }
-      } else {
-        setError(prettyError(err));
-      }
+      setError(prettyError(err));
       setBusy(false);
     }
   }
