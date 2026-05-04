@@ -343,7 +343,7 @@ export default function LiftLog({ user }) {
             LIFT<span className="text-orange-500">LOG</span>
           </h1>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-stone-500 lift-mono uppercase tracking-wider hidden sm:inline">
+            <span className="text-xs text-stone-500 lift-mono uppercase tracking-wider truncate max-w-40">
               {user.email || user.displayName}
             </span>
             <button
