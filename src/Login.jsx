@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 import { Dumbbell } from 'lucide-react';
@@ -21,6 +22,12 @@ export default function Login({ configError = '' }) {
       .replace(/\(auth\/[^)]+\)/, '')
       .trim();
     return err?.code ? `${readable} (${err.code})` : readable;
+  }
+
+  function isAppleStandalone() {
+    const ua = window.navigator.userAgent || '';
+    const isAppleDevice = /iPad|iPhone|iPod/.test(ua) || (ua.includes('Macintosh') && 'ontouchend' in document);
+    return isAppleDevice && window.navigator.standalone === true;
   }
 
   async function handleEmail(e) {
@@ -54,7 +61,20 @@ export default function Login({ configError = '' }) {
 
     setBusy(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      if (isAppleStandalone()) {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (popupErr) {
+        if (popupErr?.code === 'auth/popup-blocked') {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        }
+        throw popupErr;
+      }
     } catch (err) {
       setError(prettyError(err));
       setBusy(false);
