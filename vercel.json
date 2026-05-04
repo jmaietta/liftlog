@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/__/auth/:path*",
+      "destination": "https://liftlog-90565.firebaseapp.com/__/auth/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
