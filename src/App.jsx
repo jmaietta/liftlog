@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getRedirectResult, onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth, firebaseConfigError } from './firebase';
 import Login from './Login.jsx';
 import LiftLog from './LiftLog.jsx';
@@ -7,17 +7,12 @@ import LiftLog from './LiftLog.jsx';
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     if (firebaseConfigError || !auth) {
       setAuthLoading(false);
       return undefined;
     }
-
-    getRedirectResult(auth).catch((err) => {
-      setAuthError(err?.code ? `${err.message} (${err.code})` : err.message);
-    });
 
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -34,6 +29,5 @@ export default function App() {
     );
   }
 
-  return user ? <LiftLog user={user} /> : <Login configError={firebaseConfigError || authError} />;
+  return user ? <LiftLog user={user} /> : <Login configError={firebaseConfigError} />;
 }
-
