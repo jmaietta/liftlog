@@ -2,28 +2,36 @@ import { useState } from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signInWithRedirect,
 } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 import { Dumbbell } from 'lucide-react';
 
-export default function Login() {
+export default function Login({ configError = '' }) {
   const [mode, setMode] = useState('signin'); // signin | signup
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  function prettyError(msg) {
-    return msg
+  function prettyError(err) {
+    const message = err?.message || String(err);
+    const readable = message
       .replace('Firebase: ', '')
       .replace(/\(auth\/[^)]+\)/, '')
       .trim();
+    return err?.code ? `${readable} (${err.code})` : readable;
   }
 
   async function handleEmail(e) {
     e.preventDefault();
     setError('');
+    if (configError || !auth) {
+      setError(configError || 'Firebase Auth is not initialized.');
+      return;
+    }
+
     setBusy(true);
     try {
       if (mode === 'signup') {
@@ -32,7 +40,7 @@ export default function Login() {
         await signInWithEmailAndPassword(auth, email, password);
       }
     } catch (err) {
-      setError(prettyError(err.message));
+      setError(prettyError(err));
     } finally {
       setBusy(false);
     }
@@ -40,12 +48,25 @@ export default function Login() {
 
   async function handleGoogle() {
     setError('');
+    if (configError || !auth || !googleProvider) {
+      setError(configError || 'Firebase Auth is not initialized.');
+      return;
+    }
+
     setBusy(true);
     try {
-      // Redirect to Google's sign-in page (avoids COOP popup issues)
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithPopup(auth, googleProvider);
     } catch (err) {
-      setError(prettyError(err.message));
+      if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/popup-closed-by-user') {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return;
+        } catch (redirectErr) {
+          setError(prettyError(redirectErr));
+        }
+      } else {
+        setError(prettyError(err));
+      }
       setBusy(false);
     }
   }
@@ -85,13 +106,13 @@ export default function Login() {
             />
           </div>
 
-          {error && (
-            <div className="text-red-500 text-xs lift-mono">{error}</div>
+          {(configError || error) && (
+            <div className="text-red-500 text-xs lift-mono">{configError || error}</div>
           )}
 
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || Boolean(configError)}
             className="w-full bg-orange-500 text-black py-5 font-bold tracking-widest text-sm hover:bg-orange-400 active:bg-orange-600 disabled:bg-stone-900 disabled:text-stone-700 disabled:cursor-not-allowed transition-colors"
           >
             {busy ? '...' : (mode === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN')}
@@ -106,7 +127,7 @@ export default function Login() {
 
         <button
           onClick={handleGoogle}
-          disabled={busy}
+          disabled={busy || Boolean(configError)}
           className="w-full bg-stone-100 text-black py-5 font-bold tracking-widest text-sm hover:bg-white active:bg-stone-300 disabled:bg-stone-900 disabled:text-stone-700 disabled:cursor-not-allowed transition-colors"
         >
           CONTINUE WITH GOOGLE
@@ -114,6 +135,7 @@ export default function Login() {
 
         <button
           onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(''); }}
+          disabled={Boolean(configError)}
           className="w-full mt-6 text-xs text-stone-500 hover:text-orange-500 lift-mono tracking-widest font-bold py-2"
         >
           {mode === 'signin' ? 'NEW HERE? CREATE ACCOUNT' : 'HAVE AN ACCOUNT? SIGN IN'}
